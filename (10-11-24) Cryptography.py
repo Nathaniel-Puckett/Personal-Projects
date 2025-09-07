@@ -64,7 +64,6 @@ def Uncaesar(message):
     return analyzed_messages
 
 encrypted_message = "BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD"
-#encrypted_message = Caesar(COPYPASTAS[0], 10)
 print(Uncaesar(encrypted_message))
     
     
@@ -73,4 +72,5 @@ print(Uncaesar(encrypted_message))
     
     
     
+
     
