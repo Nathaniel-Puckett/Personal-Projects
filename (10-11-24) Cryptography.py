@@ -65,12 +65,3 @@ def Uncaesar(message):
 
 encrypted_message = "BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD"
 print(Uncaesar(encrypted_message))
-    
-    
-    
-    
-    
-    
-    
-
-    
