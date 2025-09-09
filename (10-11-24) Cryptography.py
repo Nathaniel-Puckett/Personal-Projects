@@ -1,7 +1,109 @@
 #Created October 11, 2024
-#Last Edited October 12, 2024
+#Last Edited September 8, 2025
 #Nathaniel Puckett
 
+import numpy as np
+
+def Shift(mode:str, text:str, s:int):
+    message = str()
+    text = text.lower()
+    s = s * (1 if mode == 'e' else -1)
+
+    for char in text:
+        x = ord(char) - 97
+        e_char = (x + s) % 26
+        message += chr(e_char + 97)
+    return message
+
+
+def Affine(mode:str, text:str, a:int, b:int):
+    message = str()
+    text = text.lower()
+
+    try:
+        a_i = pow(a, -1, 26)
+    except:
+        print("Invalid input for (a). (a) must be coprime with 26.")
+        return None
+
+    for char in text:
+        x = ord(char) - 97
+        if mode == 'e':
+            e_char = (a*x + b) % 26
+        elif mode == 'd':
+            e_char = (a_i*(x - b)) % 26
+        message += chr(e_char + 97)
+    return message
+
+
+def Vigenere(mode:str, text:str, key:str):
+    message = str()
+    text = text.lower()
+    key_vals = [ord(char) - 97 for char in key]
+
+    for i in range(len(text)):
+        x = ord(text[i]) - 97
+        k = key_vals[i % len(key)] * (1 if mode == 'e' else -1)
+        e_char = (x + k) % 26
+        message += chr(e_char + 97)
+    return message
+
+#Not functioning yet
+def Hill(mode:str, text:str, matrix):
+    message = str()
+    text = text.lower()
+    m = matrix.ndim
+
+    matrix = matrix if mode == 'e' else np.linalg.inv(matrix) * np.linalg.det(matrix)
+
+    for i in range(0, len(text), m):
+        v_a = np.array([ord(char) - 97 for char in text[i:i+m]])
+        v_b = np.matmul(v_a, matrix)
+        print(v_b)
+        for b in v_b:
+            message += chr(int(b)%26 + 97)
+    return message
+
+
+#----------------------------[Testing]---------------------------
+
+plaintext = "thisisateststring"
+s = 16
+
+ciphertext = Shift('e', plaintext, s)
+print(ciphertext)
+print(Shift('d', ciphertext, s))
+
+#----------------------------------------
+
+plaintext = "thisisateststring"
+a, b = 3, 10
+
+ciphertext = Affine('e', plaintext, a, b)
+print(ciphertext)
+print(Affine('d', ciphertext, a, b))
+
+#-----------------------------------------
+
+plaintext = "thisisateststring"
+key = "test"
+
+ciphertext = Vigenere('e', plaintext, key)
+print(ciphertext)
+print(Vigenere('d', ciphertext, key))
+
+#-----------------------------------------
+
+plaintext = "thisisateststrin"
+matrix = np.array([[1, 0], [0, 1]])
+
+ciphertext = Hill('e', plaintext, matrix)
+print(ciphertext)
+print(Hill('d', ciphertext, matrix))
+
+#----------------------------[Legacy Functions]---------------------------
+
+"""
 ALPHABET = [['A', 7.9], ['B', 1.4], ['C', 2.7], ['D', 4.1], ['E', 12.2], 
             ['F', 2.1], ['G', 1.9], ['H', 5.9], ['I', 6.8], ['J', 0.2], 
             ['K', 0.8], ['L', 3.9], ['M', 2.3], ['N', 6.5], ['O', 7.2], 
@@ -65,3 +167,4 @@ def Uncaesar(message):
 
 encrypted_message = "BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD"
 print(Uncaesar(encrypted_message))
+"""
