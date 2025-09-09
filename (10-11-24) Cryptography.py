@@ -54,14 +54,19 @@ def Hill(mode:str, text:str, matrix):
     text = text.lower()
     m = matrix.ndim
 
-    matrix = matrix if mode == 'e' else np.linalg.inv(matrix) * np.linalg.det(matrix)
+    if mode == 'd':
+        det = int(round(np.linalg.det(matrix), 0))
+        print(det)
+        det_inv = pow(det, -1, 26)
+        print(det_inv)
+        matrix = (np.linalg.inv(matrix) * det * det_inv) % 26
 
     for i in range(0, len(text), m):
         v_a = np.array([ord(char) - 97 for char in text[i:i+m]])
         v_b = np.matmul(v_a, matrix)
-        print(v_b)
+        print(v_a, v_b)
         for b in v_b:
-            message += chr(int(b)%26 + 97)
+            message += chr(int(round(b, 0))%26 + 97)
     return message
 
 
@@ -71,32 +76,39 @@ plaintext = "thisisateststring"
 s = 16
 
 ciphertext = Shift('e', plaintext, s)
+print('Shift')
 print(ciphertext)
 print(Shift('d', ciphertext, s))
+print()
 
 #----------------------------------------
 
 plaintext = "thisisateststring"
 a, b = 3, 10
 
+print('Affine')
 ciphertext = Affine('e', plaintext, a, b)
 print(ciphertext)
 print(Affine('d', ciphertext, a, b))
+print()
 
 #-----------------------------------------
 
 plaintext = "thisisateststring"
 key = "test"
 
+print('Vigenere')
 ciphertext = Vigenere('e', plaintext, key)
 print(ciphertext)
 print(Vigenere('d', ciphertext, key))
+print()
 
 #-----------------------------------------
 
 plaintext = "thisisateststrin"
-matrix = np.array([[1, 0], [0, 1]])
+matrix = np.array([[7, 1], [2, 1]])
 
+print('Hill')
 ciphertext = Hill('e', plaintext, matrix)
 print(ciphertext)
 print(Hill('d', ciphertext, matrix))
