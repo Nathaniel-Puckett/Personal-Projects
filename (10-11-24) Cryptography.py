@@ -48,7 +48,7 @@ def Vigenere(mode:str, text:str, key:str):
         message += chr(e_char + 97)
     return message
 
-#Not functioning yet
+
 def Hill(mode:str, text:str, matrix):
     message = str()
     text = text.lower()
@@ -56,62 +56,98 @@ def Hill(mode:str, text:str, matrix):
 
     if mode == 'd':
         det = int(round(np.linalg.det(matrix), 0))
-        print(det)
         det_inv = pow(det, -1, 26)
-        print(det_inv)
         matrix = (np.linalg.inv(matrix) * det * det_inv) % 26
 
     for i in range(0, len(text), m):
-        v_a = np.array([ord(char) - 97 for char in text[i:i+m]])
-        v_b = np.matmul(v_a, matrix)
-        print(v_a, v_b)
+        v_a = np.array([[ord(char) - 97] for char in text[i:i+m]])
+        v_b = np.matmul(matrix, v_a)
         for b in v_b:
-            message += chr(int(round(b, 0))%26 + 97)
+            message += chr(int(round(b[0], 0)) % 26 + 97)
     return message
 
 
+def Permutation(mode:str, text:str, ordering:list):
+    message = str()
+    text = text.lower()
+    m = len(ordering)
+
+    ordering_matrix = np.zeros([m, m])
+    for i in range(m):
+        ordering_matrix[ordering[i], i] = 1
+
+    if mode == 'd':
+        ordering_matrix = np.linalg.matrix_transpose(ordering_matrix)
+
+    for i in range(0, len(text), m):
+        v_a = np.array([[ord(char) - 97] for char in text[i:i+m]])
+        print(v_a)
+        print(ordering_matrix)
+        v_b = np.matmul(ordering_matrix, v_a)
+        for b in v_b:
+            message += chr(int(round(b[0], 0)) % 26 + 97)
+    return message
+
 #----------------------------[Testing]---------------------------
+t_shift, t_affine, t_vigenere, t_hill, t_permutation = False, False, False, False, True
 
-plaintext = "thisisateststring"
-s = 16
+if t_shift:
+    plaintext = "thisisateststring"
+    s = 16
 
-ciphertext = Shift('e', plaintext, s)
-print('Shift')
-print(ciphertext)
-print(Shift('d', ciphertext, s))
-print()
+    ciphertext = Shift('e', plaintext, s)
+    print('Shift')
+    print(ciphertext)
+    print(Shift('d', ciphertext, s))
+    print()
 
 #----------------------------------------
 
-plaintext = "thisisateststring"
-a, b = 3, 10
+if t_affine:
+    plaintext = "thisisateststring"
+    a, b = 3, 10
 
-print('Affine')
-ciphertext = Affine('e', plaintext, a, b)
-print(ciphertext)
-print(Affine('d', ciphertext, a, b))
-print()
-
-#-----------------------------------------
-
-plaintext = "thisisateststring"
-key = "test"
-
-print('Vigenere')
-ciphertext = Vigenere('e', plaintext, key)
-print(ciphertext)
-print(Vigenere('d', ciphertext, key))
-print()
+    print('Affine')
+    ciphertext = Affine('e', plaintext, a, b)
+    print(ciphertext)
+    print(Affine('d', ciphertext, a, b))
+    print()
 
 #-----------------------------------------
 
-plaintext = "thisisateststrin"
-matrix = np.array([[7, 1], [2, 1]])
+if t_vigenere:
+    plaintext = "thisisateststring"
+    key = "test"
 
-print('Hill')
-ciphertext = Hill('e', plaintext, matrix)
-print(ciphertext)
-print(Hill('d', ciphertext, matrix))
+    print('Vigenere')
+    ciphertext = Vigenere('e', plaintext, key)
+    print(ciphertext)
+    print(Vigenere('d', ciphertext, key))
+    print()
+
+#-----------------------------------------
+
+if t_hill:
+    plaintext = "thisisateststringg"
+    matrix = np.array([[3, 5], [3, 2]])
+
+    print('Hill')
+    ciphertext = Hill('e', plaintext, matrix)
+    print(ciphertext)
+    print(Hill('d', ciphertext, matrix))
+    print()
+
+#-----------------------------------------
+
+if t_permutation:
+    plaintext = "thisisateststringg"
+    matrix = np.array([5, 4, 3, 2, 1, 0])
+
+    print('Permutation')
+    ciphertext = Permutation('e', plaintext, matrix)
+    print(ciphertext)
+    print(Permutation('d', ciphertext, matrix))
+    print()
 
 #----------------------------[Legacy Functions]---------------------------
 
