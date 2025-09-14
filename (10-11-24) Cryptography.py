@@ -52,7 +52,7 @@ def Vigenere(mode:str, text:str, key:str):
 def Hill(mode:str, text:str, matrix):
     message = str()
     text = text.lower()
-    m = matrix.ndim
+    m = len(matrix)
 
     if mode == 'd':
         det = int(round(np.linalg.det(matrix), 0))
@@ -215,4 +215,5 @@ def Uncaesar(message):
 
 encrypted_message = "BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD"
 print(Uncaesar(encrypted_message))
+
 """
