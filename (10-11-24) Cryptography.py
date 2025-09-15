@@ -1,10 +1,32 @@
 #Created October 11, 2024
-#Last Edited September 8, 2025
+#Last Edited September 14, 2025
 #Nathaniel Puckett
 
 import numpy as np
 
-def Shift(mode:str, text:str, s:int):
+ALPHABET = {'A' : 7.9, 'B' : 1.4, 'C' : 2.7, 'D' : 4.1, 'E' : 12.2, 'F' : 2.1,
+            'G' : 1.9, 'H' : 5.9, 'I' : 6.8, 'J' : 0.2,  'K' : 0.8, 'L' : 3.9,
+            'M' : 2.3, 'N' : 6.5, 'O' : 7.2, 'P' : 1.8, 'Q' : 0.1, 'R' : 5.8,
+            'S' : 6.1, 'T' : 8.8,  'U' : 2.7, 'V' : 1.0, 'W' : 2.3, 'X' : 0.2,
+            'Y' : 1.9, 'Z' : 1.0}
+
+def frequency_analysis(text:str):
+    frequencies = dict()
+    text = text.upper()
+
+    for char in text:
+        if char.isalpha():
+            if char in frequencies:
+                frequencies[char] += 1
+            else:
+                frequencies[char] = 1
+    
+    total = sum(frequencies.values())
+    frequencies = {ch : round((val / total) * 100, 2) for ch, val in frequencies.items()}
+    return frequencies
+
+
+def shift(mode:str, text:str, s:int):
     message = str()
     text = text.lower()
     s = s * (1 if mode == 'e' else -1)
@@ -16,7 +38,24 @@ def Shift(mode:str, text:str, s:int):
     return message
 
 
-def Affine(mode:str, text:str, a:int, b:int):
+def fa_shift(text:str, num_search:int):
+    messages = ''
+
+    frequencies = [[ch, val] for ch, val in frequency_analysis(text).items()]
+    frequencies.sort(key = lambda x: x[1], reverse = True)
+
+    alphabet = [[ch, val] for ch, val in ALPHABET.items()]
+    alphabet.sort(key = lambda x: x[1], reverse = True)
+
+    for frequency in frequencies[:num_search]:
+        s = (ord(frequency[0]) - ord(alphabet[0][0])) % 26
+        messages += '\n'
+        messages += f'Shifted {str(s)} (A = {shift('e', 'A', s).upper()})'
+        messages += '\n' + shift('d', text, s) + '\n'
+    return messages
+
+
+def affine(mode:str, text:str, a:int, b:int):
     message = str()
     text = text.lower()
 
@@ -36,7 +75,7 @@ def Affine(mode:str, text:str, a:int, b:int):
     return message
 
 
-def Vigenere(mode:str, text:str, key:str):
+def vigenere(mode:str, text:str, key:str):
     message = str()
     text = text.lower()
     key_vals = [ord(char) - 97 for char in key]
@@ -49,7 +88,7 @@ def Vigenere(mode:str, text:str, key:str):
     return message
 
 
-def Hill(mode:str, text:str, matrix):
+def hill(mode:str, text:str, matrix):
     message = str()
     text = text.lower()
     m = len(matrix)
@@ -58,6 +97,7 @@ def Hill(mode:str, text:str, matrix):
         det = int(round(np.linalg.det(matrix), 0))
         det_inv = pow(det, -1, 26)
         matrix = (np.linalg.inv(matrix) * det * det_inv) % 26
+        print(matrix)
 
     for i in range(0, len(text), m):
         v_a = np.array([[ord(char) - 97] for char in text[i:i+m]])
@@ -67,7 +107,7 @@ def Hill(mode:str, text:str, matrix):
     return message
 
 
-def Permutation(mode:str, text:str, ordering:list):
+def permutation(mode:str, text:str, ordering:list):
     message = str()
     text = text.lower()
     m = len(ordering)
@@ -89,17 +129,19 @@ def Permutation(mode:str, text:str, ordering:list):
     return message
 
 #----------------------------[Testing]---------------------------
-t_shift, t_affine, t_vigenere, t_hill, t_permutation = False, False, False, False, True
+t_shift, t_affine, t_vigenere, t_hill, t_permutation = True, False, False, False, False
 
 if t_shift:
-    plaintext = "thisisateststring"
+    plaintext = "herewehavealongerstringtotestfrequencyanalysis"
     s = 16
 
-    ciphertext = Shift('e', plaintext, s)
+    ciphertext = shift('e', plaintext, s)
     print('Shift')
     print(ciphertext)
-    print(Shift('d', ciphertext, s))
+    print(shift('d', ciphertext, s))
     print()
+
+    print(fa_shift(ciphertext, 3))
 
 #----------------------------------------
 
@@ -108,9 +150,9 @@ if t_affine:
     a, b = 3, 10
 
     print('Affine')
-    ciphertext = Affine('e', plaintext, a, b)
+    ciphertext = affine('e', plaintext, a, b)
     print(ciphertext)
-    print(Affine('d', ciphertext, a, b))
+    print(affine('d', ciphertext, a, b))
     print()
 
 #-----------------------------------------
@@ -120,21 +162,21 @@ if t_vigenere:
     key = "test"
 
     print('Vigenere')
-    ciphertext = Vigenere('e', plaintext, key)
+    ciphertext = vigenere('e', plaintext, key)
     print(ciphertext)
-    print(Vigenere('d', ciphertext, key))
+    print(vigenere('d', ciphertext, key))
     print()
 
 #-----------------------------------------
 
 if t_hill:
     plaintext = "thisisateststringg"
-    matrix = np.array([[3, 5], [3, 2]])
+    matrix = np.array([[1, 2], [2, 3]])
 
     print('Hill')
-    ciphertext = Hill('e', plaintext, matrix)
+    ciphertext = hill('e', plaintext, matrix)
     print(ciphertext)
-    print(Hill('d', ciphertext, matrix))
+    print(hill('d', ciphertext, matrix))
     print()
 
 #-----------------------------------------
@@ -144,76 +186,7 @@ if t_permutation:
     matrix = np.array([5, 4, 3, 2, 1, 0])
 
     print('Permutation')
-    ciphertext = Permutation('e', plaintext, matrix)
+    ciphertext = permutation('e', plaintext, matrix)
     print(ciphertext)
-    print(Permutation('d', ciphertext, matrix))
+    print(permutation('d', ciphertext, matrix))
     print()
-
-#----------------------------[Legacy Functions]---------------------------
-
-"""
-ALPHABET = [['A', 7.9], ['B', 1.4], ['C', 2.7], ['D', 4.1], ['E', 12.2], 
-            ['F', 2.1], ['G', 1.9], ['H', 5.9], ['I', 6.8], ['J', 0.2], 
-            ['K', 0.8], ['L', 3.9], ['M', 2.3], ['N', 6.5], ['O', 7.2], 
-            ['P', 1.8], ['Q', 0.1], ['R', 5.8], ['S', 6.1], ['T', 8.8], 
-            ['U', 2.7], ['V', 1.0], ['W', 2.3], ['X', 0.2], ['Y', 1.9], 
-            ['Z', 1.0]]
-
-def Sorting(word):
-    return word[1]
-
-SORTED_ALPHABET = ALPHABET[:]
-SORTED_ALPHABET.sort(key = Sorting, reverse = True)
-    
-def Caesar(message, shift):
-    message = message.lower()
-    shift = (shift + 26) % 26
-    encrypted_message = ''
-    for char in message:
-        ord_char = ord(char)
-        if not 97 <= ord_char <= 122:
-            pass
-        elif ord_char + shift > 122:
-            ord_char = 96 + ((ord_char + shift) - 122)
-        elif ord_char + shift < 97:
-            ord_char = 123 + ((ord_char + shift) - 97)
-        else:
-            ord_char += shift
-        ord_char = chr(ord_char)
-        encrypted_message += ord_char
-    return encrypted_message
-
-def Frequency(message, is_printed=False):
-    message = message.lower()
-    frequency_list = [0] * 26
-    total = 0
-    for char in message:
-        if char.isalpha():
-            ord_char = ord(char) - 97
-            frequency_list[ord_char] += 1
-            total += 1
-    letter_frequencies = [0] * 26
-    for i in range(len(frequency_list)):
-        letter_frequencies[i] = [chr(int(i) + 97), round((frequency_list[i] / total) * 100, 2)]
-    letter_frequencies.sort(reverse = True, key = Sorting)
-    if is_printed:
-        for pair in letter_frequencies:
-            if pair[1] != 0:
-                print(f'{pair[0].upper()} : {pair[1]}%')
-    else:
-        return letter_frequencies
-
-def Uncaesar(message):
-    top_frequencies = Frequency(message)[0:10]
-    analyzed_messages = ''
-    for frequency in top_frequencies:
-        message_shift = (ord(SORTED_ALPHABET[0][0].lower()) - ord(frequency[0]))
-        analyzed_messages += '\n'
-        analyzed_messages += f'Shifted {str(-message_shift)} (A = {Caesar("A", -message_shift).upper()})'
-        analyzed_messages += '\n' + Caesar(message, message_shift) + '\n'
-    return analyzed_messages
-
-encrypted_message = "BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD"
-print(Uncaesar(encrypted_message))
-
-"""
