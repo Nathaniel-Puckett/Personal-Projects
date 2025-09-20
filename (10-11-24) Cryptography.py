@@ -10,20 +10,43 @@ ALPHABET = {'A' : 7.9, 'B' : 1.4, 'C' : 2.7, 'D' : 4.1, 'E' : 12.2, 'F' : 2.1,
             'S' : 6.1, 'T' : 8.8,  'U' : 2.7, 'V' : 1.0, 'W' : 2.3, 'X' : 0.2,
             'Y' : 1.9, 'Z' : 1.0}
 
+BIGRAMS = ['TH', 'HE', 'IN', 'ER', 'AN', 'RE', 'ES', 'ON', 'ST']
+
+TRIGRAMS = ['THE', 'AND', 'ING', 'ENT', 'ION', 'HER', 'FOR', 'THA']
+
 def frequency_analysis(text:str):
     frequencies = dict()
+    bigrams = dict()
+    trigrams = dict()
     text = text.upper()
 
-    for char in text:
+    for i in range(len(text)):
+        char = text[i]
+        bi_char = text[i:i+2] if i < len(text) else ''
+        tri_char = text[i:i+3] if i < len(text)-1 else ''
+
         if char.isalpha():
             if char in frequencies:
                 frequencies[char] += 1
             else:
                 frequencies[char] = 1
-    
-    total = sum(frequencies.values())
-    frequencies = {ch : round((val / total) * 100, 2) for ch, val in frequencies.items()}
-    return frequencies
+
+        if bi_char.isalpha():
+            if bi_char in bigrams:
+                bigrams[bi_char] += 1
+            else:
+                bigrams[bi_char] = 1
+            
+        if tri_char.isalpha():
+            if tri_char in trigrams:
+                trigrams[tri_char] += 1
+            else:
+                trigrams[tri_char] = 1
+            
+    frequencies = {ch : round((val / sum(frequencies.values())) * 100, 2) for ch, val in frequencies.items()}
+    bigrams = {ch : val for ch, val in bigrams.items()}
+    trigrams = {ch : val for ch, val in trigrams.items()}
+    return frequencies, bigrams, trigrams
 
 
 def shift(mode:str, text:str, s:int):
@@ -38,10 +61,10 @@ def shift(mode:str, text:str, s:int):
     return message
 
 
-def fa_shift(text:str, num_search:int):
-    messages = ''
+def fa_shift(text:str, num_search:int): #uses frequency analysis on shift
+    messages = str()
 
-    frequencies = [[ch, val] for ch, val in frequency_analysis(text).items()]
+    frequencies = [[ch, val] for ch, val in frequency_analysis(text)[0].items()]
     frequencies.sort(key = lambda x: x[1], reverse = True)
 
     alphabet = [[ch, val] for ch, val in ALPHABET.items()]
@@ -128,8 +151,35 @@ def permutation(mode:str, text:str, ordering:list):
             message += chr(int(round(b[0], 0)) % 26 + 97)
     return message
 
+
+def autokey(mode:str, text:str, key:int):
+    message = str()
+    text = text.lower()
+    s = key
+
+    for char in text: 
+        x = ord(char) - 97
+        e_char = x + (s if mode == 'e' else -s)
+        message += chr(e_char%26 + 97)
+        s = (x if mode == 'e' else e_char%26)
+    return message
+
+
+def bf_autokey(text:str): #uses brute force on autokey
+    messages = str()
+    text = text.lower()
+
+    for key in [ord(a[0].lower())-97 for a in ALPHABET]:
+        attempt = autokey('d', text, key)
+        messages += '\n'
+        messages += f'{str(key)} : {attempt}'
+        messages += '\n'
+    return messages
+
+
 #----------------------------[Testing]---------------------------
-t_shift, t_affine, t_vigenere, t_hill, t_permutation = True, False, False, False, False
+t_shift, t_affine, t_vigenere, t_hill, t_permutation = False, False, False, False, False
+t_autokey = True
 
 if t_shift:
     plaintext = "herewehavealongerstringtotestfrequencyanalysis"
@@ -189,4 +239,17 @@ if t_permutation:
     ciphertext = permutation('e', plaintext, matrix)
     print(ciphertext)
     print(permutation('d', ciphertext, matrix))
+    print()
+
+#-----------------------------------------
+
+if t_autokey:
+    plaintext = "thisisateststring"
+    key = 8
+
+    print('Autokey')
+    ciphertext = autokey('e', plaintext, key)
+    print(plaintext)
+    print(ciphertext)
+    print(autokey('d', ciphertext, key))
     print()
